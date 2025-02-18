@@ -11,7 +11,7 @@ public class Device4761 : IDisposable
         _instantDiCtrl = new InstantDiCtrl();
         _instantDiCtrl.SelectedDevice = new DeviceInformation("DemoDevice,BID#0");
         
-        // Only react on changes to the first two ports.
+        // Only react on changes to the first two channels, represented by the first two bits.
         _instantDiCtrl.DiPmintPorts[0].Mask = 0b11000000;
         
         // Do not react on channels on the second port.
@@ -22,12 +22,20 @@ public class Device4761 : IDisposable
     
     public void Start()
     {
-        _instantDiCtrl.SnapStart();
+        ErrorCode errorCode = _instantDiCtrl.SnapStart();
+        if (Failed(errorCode))
+        {
+            Console.WriteLine("Failed to start the device. Error code: {0}", errorCode);
+        }
     }
 
     public void Stop()
     {
-        _instantDiCtrl.SnapStop();
+        ErrorCode errorCode = _instantDiCtrl.SnapStop();
+        if (Failed(errorCode))
+        {
+            Console.WriteLine("Failed to stop the device. Error code: {0}", errorCode);
+        }
     }
     
     private void InstantDiCtrlOnPatternMatch(object? sender, DiSnapEventArgs e)
@@ -48,4 +56,9 @@ public class Device4761 : IDisposable
     {
         return (b & (1 << bitNumber)) == 0 ? 0 : 1;
     }
+    
+    private bool Failed(ErrorCode err)
+    {
+        return err is < ErrorCode.Success and >= ErrorCode.ErrorHandleNotValid;
+    }    
 }
