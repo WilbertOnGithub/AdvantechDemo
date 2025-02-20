@@ -4,31 +4,31 @@ namespace AdvantechDemo;
 
 public class Device4761 : IDisposable
 {
-    private readonly InstantDiCtrl _instantDiCtrl;
-    private readonly InstantDoCtrl _instantDoCtrl;
+    private readonly InstantDiCtrl _digitalInputs;
+    private readonly InstantDoCtrl _digitalOutputs;
     
     public Device4761()
     {
         const string deviceDescription = "DemoDevice,BID#0";
         
-        _instantDiCtrl = new InstantDiCtrl();
-        _instantDiCtrl.SelectedDevice = new DeviceInformation(deviceDescription);
+        _digitalInputs = new InstantDiCtrl();
+        _digitalInputs.SelectedDevice = new DeviceInformation(deviceDescription);
         
         // Only react on changes to the channels bit 0 and bit 1 on the first port.
-        _instantDiCtrl.DiPmintPorts[0].Mask = 0b11000000;
+        _digitalInputs.DiPmintPorts[0].Mask = 0b11000000;
         
         // Do not react on changes on the second port.
-        _instantDiCtrl.DiPmintPorts[1].Mask = 0b00000000;
+        _digitalInputs.DiPmintPorts[1].Mask = 0b00000000;
         
-        _instantDiCtrl.PatternMatch += InstantDiCtrlOnPatternMatch;
+        _digitalInputs.PatternMatch += DigitalInputsOnPatternMatch;
 
-        _instantDoCtrl = new InstantDoCtrl();
-        _instantDoCtrl.SelectedDevice = new DeviceInformation(deviceDescription);
+        _digitalOutputs = new InstantDoCtrl();
+        _digitalOutputs.SelectedDevice = new DeviceInformation(deviceDescription);
     }
     
     public void Start()
     {
-        ErrorCode errorCode = _instantDiCtrl.SnapStart();
+        ErrorCode errorCode = _digitalInputs.SnapStart();
         if (Failed(errorCode))
         {
             Console.WriteLine("Failed to start the device. Error code: {0}", errorCode);
@@ -37,14 +37,14 @@ public class Device4761 : IDisposable
 
     public void Stop()
     {
-        ErrorCode errorCode = _instantDiCtrl.SnapStop();
+        ErrorCode errorCode = _digitalInputs.SnapStop();
         if (Failed(errorCode))
         {
             Console.WriteLine($"Failed to stop the device. Error code: {errorCode}");
         }
     }
     
-    private void InstantDiCtrlOnPatternMatch(object? sender, DiSnapEventArgs e)
+    private void DigitalInputsOnPatternMatch(object? sender, DiSnapEventArgs e)
     {
         (int DropButton, int OverrideButton) buttonTuple = (GetBit(e.PortData[0], 0), GetBit(e.PortData[0], 1));
         Console.WriteLine("\nData:\t {0}", e.PortData[0]);
@@ -67,7 +67,7 @@ public class Device4761 : IDisposable
     private void OpenTrapdoor()
     {
         Console.WriteLine("Opening trapdoor.");
-        ErrorCode errorCode = _instantDoCtrl.Write(0, 0b00000001);
+        ErrorCode errorCode = _digitalOutputs.Write(0, 0b00000001);
         if (Failed(errorCode))
         {
             Console.WriteLine($"Failed to write to output port. Error code: {errorCode}");
@@ -76,8 +76,8 @@ public class Device4761 : IDisposable
     
     public void Dispose()
     {
-        _instantDiCtrl.PatternMatch -= InstantDiCtrlOnPatternMatch;
-        _instantDiCtrl.Dispose();
+        _digitalInputs.PatternMatch -= DigitalInputsOnPatternMatch;
+        _digitalInputs.Dispose();
     }
     
     private static int GetBit(byte b, int bitNumber)
