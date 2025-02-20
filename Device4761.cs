@@ -5,19 +5,25 @@ namespace AdvantechDemo;
 public class Device4761 : IDisposable
 {
     private readonly InstantDiCtrl _instantDiCtrl;
+    private readonly InstantDoCtrl _instantDoCtrl;
     
     public Device4761()
     {
-        _instantDiCtrl = new InstantDiCtrl();
-        _instantDiCtrl.SelectedDevice = new DeviceInformation("DemoDevice,BID#0");
+        const string deviceDescription = "DemoDevice,BID#0";
         
-        // Only react on changes to the first two channels, represented by the first two bits.
+        _instantDiCtrl = new InstantDiCtrl();
+        _instantDiCtrl.SelectedDevice = new DeviceInformation(deviceDescription);
+        
+        // Only react on changes to the channels bit 0 and bit 1 on the first port.
         _instantDiCtrl.DiPmintPorts[0].Mask = 0b11000000;
         
-        // Do not react on channels on the second port.
+        // Do not react on changes on the second port.
         _instantDiCtrl.DiPmintPorts[1].Mask = 0b00000000;
         
         _instantDiCtrl.PatternMatch += InstantDiCtrlOnPatternMatch;
+
+        _instantDoCtrl = new InstantDoCtrl();
+        _instantDoCtrl.SelectedDevice = new DeviceInformation(deviceDescription);
     }
     
     public void Start()
@@ -34,7 +40,7 @@ public class Device4761 : IDisposable
         ErrorCode errorCode = _instantDiCtrl.SnapStop();
         if (Failed(errorCode))
         {
-            Console.WriteLine("Failed to stop the device. Error code: {0}", errorCode);
+            Console.WriteLine($"Failed to stop the device. Error code: {errorCode}");
         }
     }
     
@@ -47,6 +53,7 @@ public class Device4761 : IDisposable
         {
             case {DropButton: 1, OverrideButton: 1}:
                 Console.WriteLine("DROP + OVERRIDE buttons pressed.");
+                OpenTrapdoor();
                 break;
             case {DropButton: 1, OverrideButton: 0}:
                 Console.WriteLine("Only DROP button pressed.");
@@ -54,6 +61,16 @@ public class Device4761 : IDisposable
             case {DropButton: 0, OverrideButton: 1}:
                 Console.WriteLine("Only OVERRIDE button pressed.");
                 break;
+        }
+    }
+
+    private void OpenTrapdoor()
+    {
+        Console.WriteLine("Opening trapdoor.");
+        ErrorCode errorCode = _instantDoCtrl.Write(0, 1);
+        if (Failed(errorCode))
+        {
+            Console.WriteLine($"Failed to write to output port. Error code: {errorCode}");
         }
     }
     
