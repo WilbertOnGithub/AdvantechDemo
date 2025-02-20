@@ -67,7 +67,7 @@ public class Device4761 : IDisposable
     private void OpenTrapdoor()
     {
         Console.WriteLine("Opening trapdoor.");
-        ErrorCode errorCode = _instantDoCtrl.Write(0, 1);
+        ErrorCode errorCode = _instantDoCtrl.Write(0, 0b00000001);
         if (Failed(errorCode))
         {
             Console.WriteLine($"Failed to write to output port. Error code: {errorCode}");
