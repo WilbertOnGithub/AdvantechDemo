@@ -1,4 +1,5 @@
-﻿ using Automation.BDaq;
+﻿ using System.Collections;
+ using Automation.BDaq;
 
 namespace AdvantechDemo;
 
@@ -13,8 +14,10 @@ public class Device4761 : IDisposable
         
         _digitalInputs = new InstantDiCtrl();
         _digitalInputs.SelectedDevice = new DeviceInformation(deviceDescription);
-        
-        // Only react on changes to the channels bit 0 and bit 1 on the first port.
+
+        // Usually, binary notation is done with least significant bit on the right. However, to tell 
+        // the device that I'm only interested in channel 0 and 1, I have to set the mask to 0b11000000.
+        // So it looks like the bit notation for the mask property is done with least significant bit on the left.
         _digitalInputs.DiPmintPorts[0].Mask = 0b11000000;
         
         // Do not react on changes on the second port.
@@ -46,19 +49,19 @@ public class Device4761 : IDisposable
     
     private void DigitalInputsOnPatternMatch(object? sender, DiSnapEventArgs e)
     {
-        (int DropButton, int OverrideButton) buttonTuple = (GetBit(e.PortData[0], 0), GetBit(e.PortData[0], 1));
+        (bool DropPressed, bool OverridePressed) buttonTuple = (GetBit(e.PortData[0], 0), GetBit(e.PortData[0], 1));
         Console.WriteLine("\nData:\t {0}", e.PortData[0]);
         Console.WriteLine("Binary:\t {0}", Convert.ToString(e.PortData[0], 2).PadLeft(8, '0'));
         switch (buttonTuple)
         {
-            case {DropButton: 1, OverrideButton: 1}:
+            case {DropPressed: true, OverridePressed: true}:
                 Console.WriteLine("DROP + OVERRIDE buttons pressed.");
                 OpenTrapdoor();
                 break;
-            case {DropButton: 1, OverrideButton: 0}:
+            case {DropPressed: true, OverridePressed: false}:
                 Console.WriteLine("Only DROP button pressed.");
                 break;
-            case {DropButton: 0, OverrideButton: 1}:
+            case {DropPressed: false, OverridePressed: true}:
                 Console.WriteLine("Only OVERRIDE button pressed.");
                 break;
         }
@@ -80,9 +83,9 @@ public class Device4761 : IDisposable
         _digitalInputs.Dispose();
     }
     
-    private static int GetBit(byte b, int bitNumber)
+    private static bool GetBit(byte b, int bitNumber)
     {
-        return (b & (1 << bitNumber)) == 0 ? 0 : 1;
+        return new BitArray([b]).Get(bitNumber);
     }
     
     private bool Failed(ErrorCode err)
