@@ -1,4 +1,4 @@
-﻿using Automation.BDaq;
+﻿ using Automation.BDaq;
 
 namespace AdvantechDemo;
 
@@ -40,10 +40,21 @@ public class Device4761 : IDisposable
     
     private void InstantDiCtrlOnPatternMatch(object? sender, DiSnapEventArgs e)
     {
-        byte portData = e.PortData[0];
-        
-        Console.WriteLine("Value of channel 0 on port 0: {0}", GetBit(portData, 0));
-        Console.WriteLine("Value of channel 1 on port 0: {0}", GetBit(portData, 1));
+        (int DropButton, int OverrideButton) buttonTuple = (GetBit(e.PortData[0], 0), GetBit(e.PortData[0], 1));
+        Console.WriteLine("\nData:\t {0}", e.PortData[0]);
+        Console.WriteLine("Binary:\t {0}", Convert.ToString(e.PortData[0], 2).PadLeft(8, '0'));
+        switch (buttonTuple)
+        {
+            case {DropButton: 1, OverrideButton: 1}:
+                Console.WriteLine("DROP + OVERRIDE buttons pressed.");
+                break;
+            case {DropButton: 1, OverrideButton: 0}:
+                Console.WriteLine("Only DROP button pressed.");
+                break;
+            case {DropButton: 0, OverrideButton: 1}:
+                Console.WriteLine("Only OVERRIDE button pressed.");
+                break;
+        }
     }
     
     public void Dispose()
