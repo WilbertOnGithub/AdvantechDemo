@@ -18,6 +18,8 @@ public class Device4761 : IDisposable
         // Usually, binary notation is done with least significant bit on the right. However, to tell 
         // the device that I'm only interested in channel 0 and 1, I have to set the mask to 0b11000000.
         // So it looks like the bit notation for the mask property is done with least significant bit on the left.
+        // Verify with Advantech if this is the actual designed behaviour
+        // _digitalInputs.DiPmintPorts[0].Mask = 0b00000011;
         _digitalInputs.DiPmintPorts[0].Mask = 0b11000000;
         
         // Do not react on changes on the second port.
