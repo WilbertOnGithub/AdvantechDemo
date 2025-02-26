@@ -19,11 +19,9 @@ public class Device4761 : IDisposable
         // the device that I'm only interested in channel 0 and 1, I have to set the mask to 0b11000000.
         // So it looks like the bit notation for the mask property is done with least significant bit on the left.
         // Verify with Advantech if this is the actual designed behaviour
-        // _digitalInputs.DiPmintPorts[0].Mask = 0b00000011;
-        _digitalInputs.DiPmintPorts[0].Mask = 0b11000000;
         
-        // Do not react on changes on the second port.
-        _digitalInputs.DiPmintPorts[1].Mask = 0b00000000;
+        _digitalInputs.DiPmintPorts[0].Mask = 0b11000000;
+        // _digitalInputs.DiPmintPorts[0].Mask = 0b00000011;
         
         _digitalInputs.PatternMatch += DigitalInputsOnPatternMatch;
 
@@ -58,7 +56,6 @@ public class Device4761 : IDisposable
         {
             case {DropPressed: true, OverridePressed: true}:
                 Console.WriteLine("DROP + OVERRIDE buttons pressed.");
-                OpenTrapdoor();
                 break;
             case {DropPressed: true, OverridePressed: false}:
                 Console.WriteLine("Only DROP button pressed.");
@@ -66,16 +63,6 @@ public class Device4761 : IDisposable
             case {DropPressed: false, OverridePressed: true}:
                 Console.WriteLine("Only OVERRIDE button pressed.");
                 break;
-        }
-    }
-
-    private void OpenTrapdoor()
-    {
-        Console.WriteLine("Opening trapdoor.");
-        ErrorCode errorCode = _digitalOutputs.Write(0, 0b00000001);
-        if (Failed(errorCode))
-        {
-            Console.WriteLine($"Failed to write to output port. Error code: {errorCode}");
         }
     }
     
