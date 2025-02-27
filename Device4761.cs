@@ -15,20 +15,13 @@ public class Device4761 : IDisposable
         _digitalInputs = new InstantDiCtrl();
         _digitalInputs.SelectedDevice = new DeviceInformation(deviceDescription);
 
-        // Usually, binary notation is done with least significant bit on the right. However, to tell 
-        // the device that I'm only interested in channel 0 and 1, I have to set the mask to 0b11000000.
-        // So it looks like the bit notation for the mask property is done with least significant bit on the left.
-        // Verify with Advantech if this is the actual designed behaviour
-        
-        _digitalInputs.DiPmintPorts[0].Mask = 0b11000000;
-        // _digitalInputs.DiPmintPorts[0].Mask = 0b00000011;
-        
-        _digitalInputs.PatternMatch += DigitalInputsOnPatternMatch;
+        _digitalInputs.DiCosintPorts[0].Mask = 0b0000_0011;
+        _digitalInputs.ChangeOfState += DataReceived;
 
         _digitalOutputs = new InstantDoCtrl();
         _digitalOutputs.SelectedDevice = new DeviceInformation(deviceDescription);
     }
-    
+
     public void Start()
     {
         ErrorCode errorCode = _digitalInputs.SnapStart();
@@ -47,8 +40,9 @@ public class Device4761 : IDisposable
         }
     }
     
-    private void DigitalInputsOnPatternMatch(object? sender, DiSnapEventArgs e)
+    private void DataReceived(object? sender, DiSnapEventArgs e)
     {
+        // Take care that you read the bits that you set the mask on.
         (bool DropPressed, bool OverridePressed) buttonTuple = (GetBit(e.PortData[0], 0), GetBit(e.PortData[0], 1));
         Console.WriteLine("\nData:\t {0}", e.PortData[0]);
         Console.WriteLine("Binary:\t {0}", Convert.ToString(e.PortData[0], 2).PadLeft(8, '0'));
@@ -68,7 +62,7 @@ public class Device4761 : IDisposable
     
     public void Dispose()
     {
-        _digitalInputs.PatternMatch -= DigitalInputsOnPatternMatch;
+        _digitalInputs.PatternMatch -= DataReceived;
         _digitalInputs.Dispose();
     }
     
