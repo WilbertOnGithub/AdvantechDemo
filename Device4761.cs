@@ -15,8 +15,9 @@ public class Device4761 : IDisposable
         _digitalInputs = new InstantDiCtrl();
         _digitalInputs.SelectedDevice = new DeviceInformation(deviceDescription);
 
-        _digitalInputs.DiCosintPorts[0].Mask = 0b0000_0011;
-        _digitalInputs.ChangeOfState += DataReceived;
+        _digitalInputs.DiintChannels[0].TrigEdge = ActiveSignal.BothEdge;
+        _digitalInputs.DiintChannels[0].Enabled = true;
+        _digitalInputs.Interrupt += DataReceived;
 
         _digitalOutputs = new InstantDoCtrl();
         _digitalOutputs.SelectedDevice = new DeviceInformation(deviceDescription);
